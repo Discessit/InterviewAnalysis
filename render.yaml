@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: video-interview-analysis
+    env: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: PYTHON_VERSION
+        value: 3.11
+    autoDeploy: true
+    disk:
+      name: static
+      mountPath: /app/static
+      sizeGB: 1
