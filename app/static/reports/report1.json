@@ -1,0 +1,52 @@
+{
+  "soft_skills": {
+    "authenticity_naturalness": {
+      "description": "The candidate spoke naturally with spontaneous responses.",
+      "examples": ["Answered leadership question with a personal anecdote."]
+    },
+    "rapport_likeability": {
+      "description": "The candidate maintained positive rapport with the interviewer.",
+      "examples": ["Smiled and asked clarifying questions."]
+    },
+    "communication_interpersonal": {
+      "clarity": "High clarity in responses.",
+      "active_listening": "Actively engaged with interviewer's questions.",
+      "collaboration": "Demonstrated teamwork skills.",
+      "adaptability": "Easily switched between topics.",
+      "confidence": "Confident tone and body language.",
+      "examples": ["Provided clear example during problem-solving discussion."]
+    }
+  },
+  "integrity": {
+    "pauses_delivery": {
+      "description": "Pauses were natural, no signs of reading from a screen.",
+      "examples": ["Short pauses before complex questions."]
+    },
+    "speech_patterns": {
+      "description": "Speech was conversational with natural fillers.",
+      "examples": ["Used 'um' and 'you know' appropriately."]
+    },
+    "physical_cues": {
+      "description": "Eye contact with camera, no distraction cues.",
+      "examples": ["Looked at camera during responses."]
+    }
+  },
+  "quantitative_scores": {
+    "naturalness": 85,
+    "likeability_rapport": 90,
+    "communication_clarity": 80,
+    "active_listening": 75,
+    "confidence": 88,
+    "adaptability": 82,
+    "interview_integrity": 90
+  },
+  "summary": {
+    "strengths": ["Naturalness", "Rapport", "Confidence"],
+    "gaps": ["Active Listening", "Clarity in technical questions"],
+    "integrity_assessment": {
+      "description": "High integrity, no signs of AI assistance.",
+      "score": 90
+    },
+    "recommendation": "Candidate is reliable and recommended for further consideration."
+  }
+}
