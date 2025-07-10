@@ -15,6 +15,7 @@ import logging
 from dotenv import load_dotenv
 import base64
 import json
+import re
 
 # Load environment variables
 load_dotenv()
@@ -67,14 +68,21 @@ class AnalysisReport(BaseModel):
     summary: dict
 
 
-def process_video(video_path: str) -> str:
+def process_video(video_path: str) -> tuple[str, float]:
     try:
         video = VideoFileClip(video_path)
+        duration = video.duration
         video.close()
-        return video_path
+        return video_path,  duration
     except Exception as e:
         logger.error(f"Error validating video: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error processing video: {str(e)}")
+
+# Function to strip markdown formatting
+def strip_markdown(response_text: str) -> str:
+    # Remove ```json ... ``` or similar markdown
+    cleaned_text = re.sub(r'```json\s*|\s*```', '', response_text, flags=re.MULTILINE)
+    return cleaned_text.strip()
 
 
 '''def extract_random_segment(video_path: str, segment_duration: int = 600) -> str:
@@ -148,8 +156,8 @@ Potential Interpersonal Gaps or Concerns: List 2-3 areas for development, refere
 Integrity Assessment: Provide a summary of your findings regarding interview integrity, explicitly stating the final Interview Integrity Score and what it implies about the likelihood of real-time AI assistance.
 Overall Recommendation: Based on their soft skills and the integrity of their interview performance, provide a clear recommendation. Should the hiring manager be confident in this candidate's interpersonal fit and trustworthiness? Justify your recommendation with key evidence and scores.
 
-**Output Format**:
-Return the analysis as a JSON object, strictly adhering to this structure:
+**Output**:
+Return only a JSON object matching this structure. **Do not include any text outside the JSON, such as transcripts or introductions.**:
 {
   "soft_skills": {
     "authenticity_naturalness": {
@@ -202,8 +210,6 @@ Return the analysis as a JSON object, strictly adhering to this structure:
     "recommendation": "Recommendation with justification"
   }
 }
-
-Ensure the response is valid JSON. Do NOT include a transcript or any extraneous text outside the JSON structure.
 """
 
 @app.get("/", response_class=HTMLResponse)
@@ -251,10 +257,10 @@ async def analyze_video(file: UploadFile = File(...)):
             tmp_file_path = tmp_file.name
 
         # Extract random 10-minute segment
-        segment_path = process_video(tmp_file_path)
+        video_path, video_duration = process_video(tmp_file_path)
 
         # Read video segment as bytes
-        with open(segment_path, "rb") as f:
+        with open(video_path, "rb") as f:
             video_bytes = f.read()
 
         # Prepare Gemini API request
@@ -277,20 +283,52 @@ async def analyze_video(file: UploadFile = File(...)):
             ]
         )
 
-        logger.info(f"Gemini API raw response: {response.text}")
-        # Parse response
+        # Log raw response for debugging
+        logger.info(f"Gemini API raw response: {response.text[:1000]}...")
+
+        # Strip markdown and parse response
+        cleaned_response = strip_markdown(response.text)
+        logger.info(f"Cleaned response: {cleaned_response[:1000]}...")
+
         try:
-            analysis = json.loads(response.text)
+            analysis = json.loads(cleaned_response)
         except json.JSONDecodeError:
-            logger.error("Failed to parse Gemini response as JSON")
-            raise HTTPException(
-                status_code=500,
-                detail=f"Invalid response from Gemini API: {response.text}"  # Truncate for brevity
+            logger.warning("Non-JSON response detected after cleaning, attempting retry")
+            # Retry with explicit instruction
+            retry_response = model.generate_content(
+                contents=[
+                    {
+                        "role": "user",
+                        "parts": [
+                            {
+                                "text": f"{PROMPT}\n\nReturn only the JSON analysis as specified. Do NOT include markdown, transcripts, or any non-JSON text."
+                            },
+                            {"inline_data": {"mime_type": file_data.mime_type, "data": file_data.data}}
+                        ]
+                    }
+                ]
             )
+
+            logger.info(f"Gemini API retry response: {retry_response.text[:1000]}...")
+            cleaned_retry_response = strip_markdown(retry_response.text)
+            logger.info(f"Cleaned retry response: {cleaned_retry_response[:1000]}...")
+            try:
+                analysis = json.loads(cleaned_retry_response)
+            except json.JSONDecodeError as json_err:
+                logger.error(f"Failed to parse retry response as JSON: {cleaned_retry_response[:1000]}...")
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"Invalid response from Gemini API after retry: {cleaned_retry_response[:500]}"
+                )
+
+        try:
+            analysis_report = AnalysisReport(**analysis)
+        except ValueError as e:
+            logger.error(f"Response does not match AnalysisReport model: {str(e)}")
+            raise HTTPException(status_code=422, detail=f"Invalid analysis structure: {str(e)}")
 
         # Clean up temporary files
         os.remove(tmp_file_path)
-        os.remove(segment_path)
 
         return AnalysisReport(**analysis)
 
