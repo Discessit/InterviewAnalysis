@@ -3,30 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Learn about our video interview analysis service powered by Gemini API.">
-    <title>About</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="/static/css/style.css" rel="stylesheet">
+    <title>About - Interview Analysis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/static/css/style.css">
 </head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container">
-            <a class="navbar-brand" href="/">Interview Analysis</a>
-            <div class="collapse navbar-collapse">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
-                    <li class="nav-item"><a class="nav-link" href="/examples">Examples</a></li>
-                    <li class="nav-item"><a class="nav-link" href="/upload">Upload Video</a></li>
-                    <li class="nav-item"><a class="nav-link active" href="/about">About</a></li>
-                </ul>
+<body class="bg-gray-100 font-sans">
+    <nav class="bg-white shadow-md">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <a href="/" class="text-2xl font-bold text-blue-600">Interview Analysis</a>
+            <div class="space-x-4">
+                <a href="/" class="text-gray-700 hover:text-blue-600">Home</a>
+                <a href="/instructions" class="text-gray-700 hover:text-blue-600">Instructions</a>
+                <a href="/upload" class="text-gray-700 hover:text-blue-600">Upload Video</a>
+                <a href="/about" class="text-gray-700 hover:text-blue-600">About</a>
             </div>
         </div>
     </nav>
-    <div class="container mt-5">
-        <h1>About the Project</h1>
-        <p>This service uses the Gemini API to analyze video interviews, evaluating candidates' soft skills (e.g., communication, confidence) and detecting potential cheating behaviors (e.g., real-time AI assistance). Built with FastAPI and hosted on Render.com.</p>
-        <p>For API details, visit <a href="https://x.ai/api">xAI API</a>.</p>
+
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold text-gray-800 mb-6">About the Project</h1>
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <p class="text-gray-700 mb-4">This service uses the Gemini API to analyze video interviews, evaluating candidates' soft skills (e.g., communication, confidence) and detecting potential cheating behaviors (e.g., real-time AI assistance). Built with FastAPI and hosted on Render.com.</p>
+        </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

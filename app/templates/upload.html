@@ -3,141 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Upload a video interview for soft skills and integrity analysis using Gemini API.">
-    <title>Upload Video</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="/static/css/style.css" rel="stylesheet">
+    <title>Upload Video - Interview Analysis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/static/css/style.css">
 </head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container">
-            <a class="navbar-brand" href="/">Video Interview Analysis</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
-                    <li class="nav-item"><a class="nav-link" href="/examples">Examples</a></li>
-                    <li class="nav-item"><a class="nav-link active" href="/upload">Upload</a></li>
-                    <li class="nav-item"><a class="nav-link" href="/about">About</a></li>
-                </ul>
+<body class="bg-gray-100 font-sans">
+    <nav class="bg-white shadow-md">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <a href="/" class="text-2xl font-bold text-blue-600">Interview Analysis</a>
+            <div class="space-x-4">
+                <a href="/" class="text-gray-700 hover:text-blue-600">Home</a>
+                <a href="/instructions" class="text-gray-700 hover:text-blue-600">Instructions</a>
+                <a href="/upload" class="text-gray-700 hover:text-blue-600">Upload</a>
+                <a href="/about" class="text-gray-700 hover:text-blue-600">About</a>
             </div>
         </div>
     </nav>
-    <div class="container mt-5">
-        <h1>Upload Video for Analysis</h1>
-        <p>Please select an MP4 file for analysis.</p>
-        <form id="uploadForm" enctype="multipart/form-data">
-            <div class="mb-3">
-                <label for="videoFile" class="form-label">Select Video (MP4 only)</label>
-                <input type="file" class="form-control" id="videoFile" name="file" accept="video/mp4,.mp4" required>
+
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold text-gray-800 mb-6">Upload Video for Analysis</h1>
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <p class="text-gray-700 mb-4">Please select an MP4 file for analysis.</p>
+            <div class="mb-4">
+                <input type="file" id="videoFile" accept="video/mp4" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
             </div>
-            <button type="submit" class="btn btn-primary" id="analyzeButton">Analyze</button>
-        </form>
-        <div id="loading" class="mt-3 d-none">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Loading...</span>
-            </div>
-            <span>Analyzing video, please wait...</span>
+            <button id="analyzeButton" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700">Analyze</button>
         </div>
-        <div id="result" class="mt-4"></div>
+
+        <div id="loading" class="hidden mt-4 text-center">
+            <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600 mx-auto"></div>
+            <p class="text-gray-700 mt-2">Analyzing video, please wait...</p>
+        </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const fileInput = document.getElementById('videoFile');
-            const resultDiv = document.getElementById('result');
-            const loadingDiv = document.getElementById('loading');
-            const analyzeButton = document.getElementById('analyzeButton');
 
-            const file = fileInput.files[0];
-            if (!file) {
-                resultDiv.innerHTML = `<div class="alert alert-danger">Please select a video file.</div>`;
-                return;
-            }
-
-            loadingDiv.classList.remove('d-none');
-            analyzeButton.disabled = true;
-            resultDiv.innerHTML = '';
-
-            try {
-                const formData = new FormData();
-                formData.append('file', file);
-
-                const response = await fetch('/analyze', {
-                    method: 'POST',
-                    body: formData
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Server error: ${response.statusText}`);
-                }
-
-                const report = await response.json();
-
-                resultDiv.innerHTML = `
-                    <div class="card">
-                        <div class="card-body">
-                            <h5 class="card-title">Analysis Result</h5>
-                            <h6 class="mt-4">Skills and Integrity Scores</h6>
-                            <div class="chart-container">
-                                <canvas id="scoresChart"></canvas>
-                            </div>
-                            <h6 class="mt-4">Summary</h6>
-                            <p><strong>Strengths:</strong> ${report.summary.strengths.join(', ')}</p>
-                            <p><strong>Development Areas:</strong> ${report.summary.gaps.join(', ')}</p>
-                            <p><strong>Integrity Assessment:</strong> ${report.summary.integrity_assessment.description} (Score: ${report.summary.integrity_assessment.score}/100)</p>
-                            <p><strong>Recommendation:</strong> ${report.summary.recommendation}</p>
-                        </div>
-                    </div>
-                `;
-
-                const ctx = document.getElementById('scoresChart').getContext('2d');
-                new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: ['Naturalness', 'Rapport', 'Clarity', 'Active Listening', 'Confidence', 'Adaptability', 'Integrity'],
-                        datasets: [{
-                            label: 'Scores',
-                            data: [
-                                report.quantitative_scores.naturalness,
-                                report.quantitative_scores.likeability_rapport,
-                                report.quantitative_scores.communication_clarity,
-                                report.quantitative_scores.active_listening,
-                                report.quantitative_scores.confidence,
-                                report.quantitative_scores.adaptability,
-                                report.quantitative_scores.interview_integrity
-                            ],
-                            backgroundColor: ['#007bff', '#28a745', '#dc3545', '#ffc107', '#17a2b8', '#6610f2', '#6c757d'],
-                            borderColor: ['#0056b3', '#218838', '#c82333', '#e0a800', '#138496', '#5300eb', '#5a6268'],
-                            borderWidth: 1
-                        }]
-                    },
-                    options: {
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                max: 100
-                            }
-                        },
-                        plugins: {
-                            legend: {
-                                display: false
-                            }
-                        }
-                    }
-                });
-
-            } catch (error) {
-                resultDiv.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
-            } finally {
-                loadingDiv.classList.add('d-none');
-                analyzeButton.disabled = false;
-            }
-        });
-    </script>
+    <script src="/static/js/script.js"></script>
 </body>
 </html>

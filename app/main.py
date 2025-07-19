@@ -16,15 +16,14 @@ from dotenv import load_dotenv
 import base64
 import json
 import re
+import httpx
 
-# Load environment variables
+
 load_dotenv()
 
-# Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Initialize FastAPI app
 app = FastAPI(title="Interview Analysis API",
               description="Analyzes video interviews for soft skills and integrity using Gemini API")
 
@@ -35,21 +34,22 @@ except Exception as e:
     logger.error(f"Failed to mount static files or templates: {str(e)}")
     raise
 
-# Configure Gemini API
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 if not GEMINI_API_KEY:
     raise ValueError("GEMINI_API_KEY not found")
 genai.configure(api_key=GEMINI_API_KEY)
 model = genai.GenerativeModel("gemini-2.0-flash")
 
-# Pydantic models for structured response
+
 class FileData(BaseModel):
     data: str
     mime_type: str
 
+
 class Message(BaseModel):
     role: str
     content: str | List[FileData]
+
 
 class ChatRequest(BaseModel):
     message: str
@@ -57,9 +57,11 @@ class ChatRequest(BaseModel):
     history: List[Message] = []
     system_prompt: str
 
+
 class ChatResponse(BaseModel):
     response: str
     error: Optional[str] = None
+
 
 class AnalysisReport(BaseModel):
     soft_skills: dict
@@ -78,9 +80,8 @@ def process_video(video_path: str) -> tuple[str, float]:
         logger.error(f"Error validating video: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error processing video: {str(e)}")
 
-# Function to strip markdown formatting
+
 def strip_markdown(response_text: str) -> str:
-    # Remove ```json ... ``` or similar markdown
     cleaned_text = re.sub(r'```json\s*|\s*```', '', response_text, flags=re.MULTILINE)
     return cleaned_text.strip()
 
@@ -106,7 +107,6 @@ def strip_markdown(response_text: str) -> str:
         logger.error(f"Error extracting video segment: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error processing video: {str(e)}")'''
 
-# Prompt for Gemini API (unchanged as provided)
 PROMPT = """
 Your Role: You are an expert talent acquisition specialist, interpersonal dynamics analyst, and forensic linguistic examiner.
 
@@ -212,6 +212,7 @@ Return only a JSON object matching this structure. **Do not include any text out
 }
 """
 
+
 @app.get("/", response_class=HTMLResponse)
 async def root(request: Request):
     try:
@@ -220,13 +221,15 @@ async def root(request: Request):
         logger.error(f"Error rendering index.html: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to render homepage")
 
-@app.get("/examples", response_class=HTMLResponse)
-async def examples(request: Request):
+
+@app.get("/instructions", response_class=HTMLResponse)
+async def instructions(request: Request):
     try:
-        return templates.TemplateResponse("examples.html", {"request": request})
+        return templates.TemplateResponse("instructions.html", {"request": request})
     except Exception as e:
-        logger.error(f"Error rendering examples.html: {str(e)}")
-        raise HTTPException(status_code=500, detail="Failed to render examples page")
+        logger.error(f"Error rendering instructions.html: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to render instructions page")
+
 
 @app.get("/upload", response_class=HTMLResponse)
 async def upload(request: Request):
@@ -236,6 +239,7 @@ async def upload(request: Request):
         logger.error(f"Error rendering upload.html: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to render upload page")
 
+
 @app.get("/about", response_class=HTMLResponse)
 async def about(request: Request):
     try:
@@ -244,33 +248,56 @@ async def about(request: Request):
         logger.error(f"Error rendering about.html: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to render about page")
 
+
+@app.get("/results", response_class=HTMLResponse)
+async def results(request: Request, report: Optional[str] = None):
+    try:
+        if report:
+            try:
+                report_data = json.loads(report)
+            except json.JSONDecodeError:
+                logger.error(f"Invalid report data: {report[:500]}...")
+                raise HTTPException(status_code=422, detail="Invalid report data")
+        else:
+            report_data = {}
+        return templates.TemplateResponse("results.html", {"request": request, "report": report_data})
+    except Exception as e:
+        logger.error(f"Error rendering results.html: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to render results page")
+
+
+@app.get("/quote", response_class=JSONResponse)
+async def get_quote():
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get("https://quotes.to.digital/api/random")
+            response.raise_for_status()
+            return response.json()
+    except httpx.HTTPStatusError as e:
+        logger.error(f"Error fetching quote from API: {str(e)}")
+        return {"quote": "Failed to load quote", "link": "#"}
+    except Exception as e:
+        logger.error(f"Unexpected error fetching quote: {str(e)}")
+        return {"quote": "Failed to load quote", "link": "#"}
+
+
 @app.post("/analyze", response_model=AnalysisReport)
 async def analyze_video(file: UploadFile = File(...)):
     try:
-        # Validate file type
         if not file.content_type.startswith("video/"):
             raise HTTPException(status_code=400, detail="Uploaded file must be a video")
 
-        # Save uploaded video temporarily
         with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as tmp_file:
             tmp_file.write(await file.read())
             tmp_file_path = tmp_file.name
 
-        # Extract random 10-minute segment
         video_path, video_duration = process_video(tmp_file_path)
 
-        # Read video segment as bytes
         with open(video_path, "rb") as f:
             video_bytes = f.read()
 
-        # Prepare Gemini API request
         file_data = FileData(data=base64.b64encode(video_bytes).decode("utf-8"), mime_type="video/mp4")
-        # chat_request = ChatRequest(
-        #     files=[file_data],
-        #     system_prompt=PROMPT
-        # )
 
-        # Call Gemini API
         response = model.generate_content(
             contents=[
                 {
@@ -283,10 +310,8 @@ async def analyze_video(file: UploadFile = File(...)):
             ]
         )
 
-        # Log raw response for debugging
         logger.info(f"Gemini API raw response: {response.text[:1000]}...")
 
-        # Strip markdown and parse response
         cleaned_response = strip_markdown(response.text)
         logger.info(f"Cleaned response: {cleaned_response[:1000]}...")
 
@@ -294,7 +319,6 @@ async def analyze_video(file: UploadFile = File(...)):
             analysis = json.loads(cleaned_response)
         except json.JSONDecodeError:
             logger.warning("Non-JSON response detected after cleaning, attempting retry")
-            # Retry with explicit instruction
             retry_response = model.generate_content(
                 contents=[
                     {
@@ -327,7 +351,6 @@ async def analyze_video(file: UploadFile = File(...)):
             logger.error(f"Response does not match AnalysisReport model: {str(e)}")
             raise HTTPException(status_code=422, detail=f"Invalid analysis structure: {str(e)}")
 
-        # Clean up temporary files
         os.remove(tmp_file_path)
 
         return AnalysisReport(**analysis)

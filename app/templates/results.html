@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analysis Results - Interview Analysis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="bg-gradient-to-b from-blue-50 to-gray-100 font-sans">
+    <nav class="bg-white shadow-lg">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <a href="/" class="text-2xl font-bold text-blue-600">Interview Analysis</a>
+            <div class="space-x-4">
+                <a href="/" class="text-gray-700 hover:text-blue-600 transition">Home</a>
+                <a href="/instructions" class="text-gray-700 hover:text-blue-600 transition">Instructions</a>
+                <a href="/upload" class="text-gray-700 hover:text-blue-600 transition">Upload Video</a>
+                <a href="/about" class="text-gray-700 hover:text-blue-600 transition">About</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-4 py-12">
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-extrabold text-gray-800 mb-4">Analysis Results</h1>
+            <p class="text-lg text-gray-600">Detailed evaluation of your video interview</p>
+        </div>
+
+        {% if report %}
+        <div class="grid gap-6 md:grid-cols-2">
+            <!-- Soft Skills Card -->
+            <div class="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition">
+                <h2 class="text-2xl font-semibold text-blue-600 mb-4">Soft Skills</h2>
+                <div class="space-y-4">
+                    <div>
+                        <h3 class="text-lg font-medium text-gray-700">Naturalness</h3>
+                        <p class="text-gray-600">{{ report.soft_skills.authenticity_naturalness.description }}</p>
+                        <p class="text-sm text-gray-500"><strong>Examples:</strong> {{ report.soft_skills.authenticity_naturalness.examples | join(", ") }}</p>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-medium text-gray-700">Rapport & Likeability</h3>
+                        <p class="text-gray-600">{{ report.soft_skills.rapport_likeability.description }}</p>
+                        <p class="text-sm text-gray-500"><strong>Examples:</strong> {{ report.soft_skills.rapport_likeability.examples | join(", ") }}</p>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-medium text-gray-700">Communication & Interpersonal Skills</h3>
+                        <ul class="list-disc list-inside text-gray-600 space-y-2">
+                            <li><strong>Clarity:</strong> {{ report.soft_skills.communication_interpersonal.clarity }}</li>
+                            <li><strong>Active Listening:</strong> {{ report.soft_skills.communication_interpersonal.active_listening }}</li>
+                            <li><strong>Collaboration:</strong> {{ report.soft_skills.communication_interpersonal.collaboration }}</li>
+                            <li><strong>Adaptability:</strong> {{ report.soft_skills.communication_interpersonal.adaptability }}</li>
+                            <li><strong>Confidence:</strong> {{ report.soft_skills.communication_interpersonal.confidence }}</li>
+                            <li><strong>Examples:</strong> {{ report.soft_skills.communication_interpersonal.examples | join(", ") }}</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Integrity Card -->
+            <div class="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition">
+                <h2 class="text-2xl font-semibold text-blue-600 mb-4">Interview Integrity</h2>
+                <div class="space-y-4">
+                    <div>
+                        <h3 class="text-lg font-medium text-gray-700">Pauses & Delivery</h3>
+                        <p class="text-gray-600">{{ report.integrity.pauses_delivery.description }}</p>
+                        <p class="text-sm text-gray-500"><strong>Examples:</strong> {{ report.integrity.pauses_delivery.examples | join(", ") }}</p>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-medium text-gray-700">Speech Patterns</h3>
+                        <p class="text-gray-600">{{ report.integrity.speech_patterns.description }}</p>
+                        <p class="text-sm text-gray-500"><strong>Examples:</strong> {{ report.integrity.speech_patterns.examples | join(", ") }}</p>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-medium text-gray-700">Physical Cues</h3>
+                        <p class="text-gray-600">{{ report.integrity.physical_cues.description }}</p>
+                        <p class="text-sm text-gray-500"><strong>Examples:</strong> {{ report.integrity.physical_cues.examples | join(", ") }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quantitative Scores Card -->
+            <div class="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition md:col-span-2">
+                <h2 class="text-2xl font-semibold text-blue-600 mb-4">Quantitative Scores</h2>
+                <div class="grid gap-4 md:grid-cols-2">
+                    {% for key, value in report.quantitative_scores.items() %}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 capitalize">{{ key.replace('_', ' ') }}</label>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5 mt-1">
+                            <div class="bg-blue-600 h-2.5 rounded-full" style="width: {{ value }}%"></div>
+                        </div>
+                        <p class="text-sm text-gray-600 mt-1">{{ value }}/100</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Summary Card -->
+            <div class="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition md:col-span-2">
+                <h2 class="text-2xl font-semibold text-blue-600 mb-4">Summary</h2>
+                <div class="space-y-4">
+                    <div>
+                        <h3 class="text-lg font-medium text-gray-700">Strengths</h3>
+                        <ul class="list-disc list-inside text-gray-600">{{ report.summary.strengths | join(", ") }}</ul>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-medium text-gray-700">Areas for Improvement</h3>
+                        <ul class="list-disc list-inside text-gray-600">{{ report.summary.gaps | join(", ") }}</ul>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-medium text-gray-700">Integrity Assessment</h3>
+                        <p class="text-gray-600">{{ report.summary.integrity_assessment.description }} (Score: {{ report.summary.integrity_assessment.score }})</p>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-medium text-gray-700">Recommendation</h3>
+                        <p class="text-gray-600">{{ report.summary.recommendation }}</p>
+                    </div>
+                </div>
+                <a href="/upload" class="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 mt-6">Back to Upload</a>
+            </div>
+        </div>
+        {% else %}
+        <div class="bg-white p-6 rounded-lg shadow-lg text-center">
+            <p class="text-gray-700 mb-4">No analysis results available. Please upload a video to analyze.</p>
+            <a href="/upload" class="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700">Upload Video</a>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instructions - Interview Analysis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="bg-gray-100 font-sans">
+    <nav class="bg-white shadow-md">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <a href="/" class="text-2xl font-bold text-blue-600">Interview Analysis</a>
+            <div class="space-x-4">
+                <a href="/" class="text-gray-700 hover:text-blue-600">Home</a>
+                <a href="/instructions" class="text-gray-700 hover:text-blue-600">Instructions</a>
+                <a href="/upload" class="text-gray-700 hover:text-blue-600">Upload Video</a>
+                <a href="/about" class="text-gray-700 hover:text-blue-600">About</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold text-gray-800 mb-6">How to Use Interview Analysis</h1>
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">Step-by-Step Guide</h2>
+            <ol class="list-decimal list-inside space-y-4 text-gray-700">
+                <li><strong>Prepare Your Video:</strong> Ensure your interview video is in MP4 format and is at least 10 minutes long for accurate analysis.</li>
+                <li><strong>Navigate to Upload Page:</strong> Click on the "Upload Video" link in the navigation bar or the button on the homepage.</li>
+                <li><strong>Upload Your Video:</strong> On the upload page, click "Select Video" to choose your MP4 file, then click "Analyze" to start the process.</li>
+                <li><strong>Wait for Analysis:</strong> The system will process your video using the Gemini API, analyzing soft skills and interview integrity. This may take a few moments.</li>
+                <li><strong>Review Results:</strong> Once complete, you'll be redirected to a results page with detailed scores for naturalness, likeability, communication, and integrity, along with a recommendation.</li>
+            </ol>
+            <h2 class="text-2xl font-semibold text-gray-800 mt-8 mb-4">Tips for Best Results</h2>
+            <ul class="list-disc list-inside space-y-2 text-gray-700">
+                <li>Use a high-quality video with clear audio to ensure accurate analysis.</li>
+                <li>Ensure the candidate is clearly visible and facing the camera.</li>
+                <li>Avoid background noise or distractions in the video.</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>
